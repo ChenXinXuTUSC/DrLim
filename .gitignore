@@ -1,0 +1,11 @@
+*.out
+*.pth
+*.ipynb
+
+/__pycache__
+__pycache__/
+/data
+/results
+/result
+/runs
+/run

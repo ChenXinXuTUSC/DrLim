@@ -1,0 +1,46 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "train",
+            "type": "python",
+            "request": "launch",
+            "program": "train.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "1",
+                "CUDA_LAUNCH_BLOCKING": "1"
+            },
+            "args": [
+                "--data_root", "/home/hm/fuguiduo/datasets/fashion-mnist",
+                "--tfxw_root", "${workspaceFolder}/runs/tfxw",
+                "--stat_root", "${workspaceFolder}/runs/stat",
+                "--num_epochs", "100",
+                "--batch_size", "8",
+                "--lr", "1e-2",
+            ]
+        },
+        {
+            "name": "test",
+            "type": "python",
+            "request": "launch",
+            "program": "test.py",
+            "console": "integratedTerminal",
+            "justMyCode": true,
+            "env": {
+                "CUDA_VISIBLE_DEVICES": "1",
+                "CUDA_LAUNCH_BLOCKING": "1"
+            },
+            "args": [
+                "--data_root", "/home/hm/fuguiduo/datasets/fashion-mnist",
+                "--rslt_root", "${workspaceFolder}/resutls",
+                "--stat_dict", "${workspaceFolder}/runs/stat/2023-03-28_14:35:23_e100_b8_lr0.01/40.pth",
+                "--batch_size", "8",
+            ]
+        }
+    ]
+}
