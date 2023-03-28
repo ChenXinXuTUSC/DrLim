@@ -15,9 +15,11 @@ parser.add_argument("--data_root", type=str, required=True, help="path to the ro
 parser.add_argument("--tfxw_root", type=str, default=f"{utils.PROJECT_SOURCE_DIR}/runs/tfxw", help="dir to store metric logs")
 parser.add_argument("--stat_root", type=str, default=f"{utils.PROJECT_SOURCE_DIR}/runs/stat", help="dir to store model state dict")
 parser.add_argument("--stat_dict", type=str, help="existing state dict that can be resumed")
-parser.add_argument("--num_epochs", type=int, default=100)
+parser.add_argument("--num_epochs", type=int, default=50)
 parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--lr", type=float, default=1e-2, help="learning rate")
+parser.add_argument("--in_channels", type=int, default=1, help="input space dimension")
+parser.add_argument("--out_channels", type=int, default=3, help="output space dimension")
 args = parser.parse_args()
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -28,9 +30,9 @@ batch_size = args.batch_size
 lr = args.lr
 
 timestamp = time.strftime('%Y-%m-%d_%H:%M:%S', time.localtime())
-tfxw_root = f"{args.tfxw_root}/{timestamp}_e{num_epochs}_b{batch_size}_lr{lr:.2f}"
+tfxw_root = f"{args.tfxw_root}/{timestamp}_i{args.in_channels}o{args.out_channels}_e{num_epochs}_b{batch_size}_lr{lr:.2f}"
 tfxw = SummaryWriter(tfxw_root)
-stat_root = f"{args.stat_root}/{timestamp}_e{num_epochs}_b{batch_size}_lr{lr:.2f}"
+stat_root = f"{args.stat_root}/{timestamp}_i{args.in_channels}o{args.out_channels}_e{num_epochs}_b{batch_size}_lr{lr:.2f}"
 if not os.path.exists(stat_root):
     os.makedirs(stat_root, mode=0o775)
 
@@ -39,23 +41,13 @@ trainset = datasets.FashionMnist(
     split="train",
     transforms=[transforms.Resize([32 ,32], antialias=False)]
 )
-testset = datasets.FashionMnist(
-    root=data_root,
-    split="test",
-    transforms=[transforms.Resize([32, 32], antialias=False)]
-)
 trainloader = torch.utils.data.DataLoader(
     dataset=trainset,
     batch_size=batch_size,
     shuffle=True
 )
-testloader = torch.utils.data.DataLoader(
-    dataset=testset,
-    batch_size=batch_size,
-    shuffle=True
-)
 
-classifer = model.DrLim(1, 2)
+classifer = model.DrLim(args.in_channels, args.out_channels)
 optimizer = torch.optim.Adam(classifer.parameters(), lr=args.lr)
 scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
 if args.stat_dict is not None:

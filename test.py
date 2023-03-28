@@ -19,6 +19,8 @@ parser.add_argument("--data_root", type=str, required=True, help="path to the ro
 parser.add_argument("--rslt_root", type=str, default=f"{utils.PROJECT_SOURCE_DIR}/results", help="dir to store visualization resutls")
 parser.add_argument("--stat_dict", type=str, required=True, help="existing state dict that can be resumed")
 parser.add_argument("--batch_size", type=int, default=8)
+parser.add_argument("--in_channels", type=int, default=1, help="input space dimension")
+parser.add_argument("--out_channels", type=int, default=3, help="output space dimension")
 args = parser.parse_args()
 
 data_root = args.data_root
@@ -41,7 +43,7 @@ testloader = torch.utils.data.DataLoader(
     shuffle=True
 )
 
-classifier = model.DrLim(1, 2)
+classifier = model.DrLim(args.in_channels, args.out_channels)
 classifier.load_state_dict(torch.load(stat_dict))
 classifier.eval()
 classifier.to(device)

@@ -22,6 +22,8 @@
                 "--num_epochs", "100",
                 "--batch_size", "8",
                 "--lr", "1e-2",
+                "--in_channels", "1",
+                "--out_channels", "3",
             ]
         },
         {
@@ -40,6 +42,8 @@
                 "--rslt_root", "${workspaceFolder}/resutls",
                 "--stat_dict", "${workspaceFolder}/runs/stat/2023-03-28_14:35:23_e100_b8_lr0.01/40.pth",
                 "--batch_size", "8",
+                "--in_channels", "1",
+                "--out_channels", "2",
             ]
         }
     ]

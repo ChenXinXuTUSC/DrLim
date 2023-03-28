@@ -5,7 +5,7 @@ class FashionMnist(torch.utils.data.Dataset):
     def __init__(
         self,
         root: str,
-        split: str="test",
+        split: str="train",
         transforms=None
     ) -> None:
         super().__init__()
@@ -28,3 +28,22 @@ class FashionMnist(torch.utils.data.Dataset):
             image = T(image)
 
         return image, label
+
+class Cifar10(torch.utils.data.Dataset):
+    def __init__(
+        self,
+        root: str,
+        split: str="train",
+        transforms=None
+    ) -> None:
+        self.root = root
+
+    
+    def unpickle(self, path):
+        import pickle
+        with open(path, 'rb') as f:
+            data_dict = pickle.load(f, encoding='bytes')
+        return data_dict
+    
+    
+    def
