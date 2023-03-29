@@ -14,6 +14,7 @@ def draw_points_2d(
     x: np.ndarray,
     y: np.ndarray,
     id2cls: dict,
+    out_root: str,
     out_name: str
 ):
     import matplotlib.pyplot as plt
@@ -38,12 +39,13 @@ def draw_points_2d(
         ax2.legend(loc="upper right")
     
     plt.legend(loc="upper right")
-    plt.savefig(f"{args.rslt_root}/{out_name}.png")
+    plt.savefig(f"{out_root}/{out_name}.png")
 
 def draw_points_3d(
     x: np.ndarray,
     y: np.ndarray,
     id2cls: dict,
+    out_root: str,
     out_name: str
 ):
     import matplotlib.pyplot as plt
@@ -68,7 +70,26 @@ def draw_points_3d(
         ax2.legend(loc="upper right")
     
     plt.legend(loc="upper right")
-    plt.savefig(f"{args.rslt_root}/{out_name}.png")
+    plt.savefig(f"{out_root}/{out_name}.png")
+
+def dump_points_3d(
+    x: np.ndarray,
+    y: np.ndarray,
+    out_root: str,
+    out_name: str
+):
+    import matplotlib.pyplot as plt
+    import matplotlib
+    cmap = matplotlib.colormaps["plasma"]
+    norm = matplotlib.colors.Normalize(vmin=y.min(), vmax=y.max())
+    import open3d as o3d
+
+    pcd = o3d.geometry.PointCloud()
+    pcd.points = o3d.utility.Vector3dVector(x)
+    pcd.colors = o3d.utility.Vector3dVector(cmap(norm(y[:, 0]))[:, :3])
+    o3d.io.write_point_cloud(f"{out_root}/{out_name}.ply", pcd)
+
+
 
 if __name__ == "__main__":
     args = config.args
@@ -113,5 +134,5 @@ if __name__ == "__main__":
     with open(f"{args.data_root}/classname.txt", 'r') as f:
         tagmap = {int(item[0]):item[1] for item in [line.strip().split(' ') for line in f.readlines()]}
     
-    draw_points_3d(x, y, tagmap, "i1o3")
-
+    draw_points_3d(x, y, tagmap, args.rslt_root, f"{args.data_type}_i1o3")
+    dump_points_3d(x, y, args.rslt_root, f"{args.data_type}_i1o3")

@@ -14,21 +14,18 @@ import model
 
 args = config.args
 
-
-timestamp = time.strftime('%Y-%m-%d_%H:%M:%S', time.localtime())
-tfxw_root = f"{args.tfxw_root}/{timestamp}_i{args.in_channels}o{args.out_channels}_e{args.num_epochs}_b{args.batch_size}_lr{args.lr:.2f}"
-tfxw = SummaryWriter(tfxw_root)
-stat_root = f"{args.stat_root}/{timestamp}_i{args.in_channels}o{args.out_channels}_e{args.num_epochs}_b{args.batch_size}_lr{args.lr:.2f}"
-if not os.path.exists(stat_root):
-    os.makedirs(stat_root, mode=0o775)
-
+data_type = args.data_type
+data_root = args.data_root
+data_splt = args.data_splt
+batch_size = args.batch_size
+num_workers = args.num_workers
 trainloader = datasets.make_torchloader(
-    data_type=args.data_type,
-    data_root=args.data_root,
-    split=args.data_splt,
+    data_type=data_type,
+    data_root=data_root,
+    split=data_splt,
     transforms=[transforms.Resize([32, 32], antialias=False)],
-    batch_size=args.batch_size,
-    num_workers=args.num_workers,
+    batch_size=batch_size,
+    num_workers=num_workers,
     shuffle=True,
     misc_args=args
 )
@@ -41,10 +38,19 @@ if args.stat_dict is not None:
     classifer.load_state_dict(torch.load(args.stat_dict))
 
 
+timestamp = time.strftime('%Y-%m-%d_%H:%M:%S', time.localtime())
+tfxw_root = f"{args.tfxw_root}/{timestamp}_{data_type}_i{args.in_channels}o{args.out_channels}e{args.num_epochs}b{args.batch_size}lr{args.lr:.2f}"
+tfxw = SummaryWriter(tfxw_root)
+stat_root = f"{args.stat_root}/{timestamp}_{data_type}_i{args.in_channels}o{args.out_channels}e{args.num_epochs}b{args.batch_size}lr{args.lr:.2f}"
+if not os.path.exists(stat_root):
+    os.makedirs(stat_root, mode=0o775)
+
+
+num_epochs = args.num_epochs
 classifer.to(device)
 classifer.train()
-for epoch in range(1, args.num_epochs + 1):
-    for iter, (images, labels) in tqdm(enumerate(trainloader), total=len(trainloader), ncols=100, desc=f"{utils.redd('train')} {epoch:3d}/{args.num_epochs}"):
+for epoch in range(1, num_epochs + 1):
+    for iter, (images, labels) in tqdm(enumerate(trainloader), total=len(trainloader), ncols=100, desc=f"{utils.redd('train')} {epoch:3d}/{num_epochs}"):
         images = images.to(device)
         labels = labels.to(device)
         output = classifer(images)

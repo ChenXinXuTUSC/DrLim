@@ -43,8 +43,8 @@ class Cifar10(torch.utils.data.Dataset):
         self.transforms = transforms
 
         data = np.load(f"{root}/npz/{split}_batch.npz")
-        self.images = data["images"]
-        self.labels = data["labels"]
+        self.images = torch.from_numpy(data["images"]).float()
+        self.labels = torch.from_numpy(np.reshape(data["labels"], (len(data["labels"]), 1))).int()
 
     def __len__(self):
         return len(self.labels)
@@ -58,8 +58,18 @@ class Cifar10(torch.utils.data.Dataset):
         
         return image, label
 
+class Cifar100(Cifar10):
+    def __init__(
+            self, 
+            root: str, 
+            split: str = "train", 
+            transforms: torchvision.transforms = None, 
+            misc_args=None
+        ) -> None:
+        super().__init__(root, split, transforms, misc_args)
+
 VALID_DATASETS=[
-    FashionMnist, Cifar10
+    FashionMnist, Cifar10, Cifar100
 ]
 
 def make_torchloader(
