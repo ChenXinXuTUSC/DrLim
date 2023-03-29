@@ -1,85 +1,117 @@
-import argparse
 import os
 from tqdm import tqdm
-
-import matplotlib.pyplot as plt
-import matplotlib
 
 import torch
 from torchvision import transforms
 import numpy as np
 
+import config
 import datasets
 import model
 import utils
 
+def draw_points_2d(
+    x: np.ndarray,
+    y: np.ndarray,
+    id2cls: dict,
+    out_name: str
+):
+    import matplotlib.pyplot as plt
+    import matplotlib
 
-parser = argparse.ArgumentParser()
-parser.add_argument("--data_root", type=str, required=True, help="path to the root dir of dataset")
-parser.add_argument("--rslt_root", type=str, default=f"{utils.PROJECT_SOURCE_DIR}/results", help="dir to store visualization resutls")
-parser.add_argument("--stat_dict", type=str, required=True, help="existing state dict that can be resumed")
-parser.add_argument("--batch_size", type=int, default=8)
-parser.add_argument("--in_channels", type=int, default=1, help="input space dimension")
-parser.add_argument("--out_channels", type=int, default=3, help="output space dimension")
-args = parser.parse_args()
+    cmap1 = matplotlib.colormaps["plasma"]
+    cmap2 = matplotlib.colormaps["viridis"]
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=9)
+    fig = plt.figure(figsize=plt.figaspect(0.4))
+    ax1 = fig.add_subplot(1, 2, 1)
+    ax2 = fig.add_subplot(1, 2, 2)
+    for id, cls in id2cls.items():
+        clsmask = np.nonzero((y[:, 0] == id))
+        # len(color) must match len(coords), to assign each point a color
+        # 'color' kwarg must be a color or sequence of color specs. For a 
+        # sequence of values to be color-mapped,  use  the  'c'  argument
+        ax1.scatter(x[clsmask, 0], x[clsmask, 1], color=[cmap1(norm(id))]*len(clsmask), alpha=0.2, label=cls)
+        ax1.title.set_text("DrLim-plasma")
+        ax1.legend(loc="upper right")
+        ax2.scatter(x[clsmask, 0], x[clsmask, 1], color=[cmap2(norm(id))]*len(clsmask), alpha=0.2, label=cls)
+        ax2.title.set_text("DrLim-viridi")
+        ax2.legend(loc="upper right")
+    
+    plt.legend(loc="upper right")
+    plt.savefig(f"{args.rslt_root}/{out_name}.png")
 
-data_root = args.data_root
-rslt_root = args.rslt_root
-if not os.path.exists(rslt_root):
-    os.makedirs(rslt_root, mode=0o775)
-stat_dict = args.stat_dict
-batch_size = args.batch_size
+def draw_points_3d(
+    x: np.ndarray,
+    y: np.ndarray,
+    id2cls: dict,
+    out_name: str
+):
+    import matplotlib.pyplot as plt
+    import matplotlib
 
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    cmap1 = matplotlib.colormaps["plasma"]
+    cmap2 = matplotlib.colormaps["viridis"]
+    norm = matplotlib.colors.Normalize(vmin=0, vmax=9)
+    fig = plt.figure(figsize=plt.figaspect(0.4))
+    ax1 = fig.add_subplot(1, 2, 1, projection="3d")
+    ax2 = fig.add_subplot(1, 2, 2, projection="3d")
+    for id, cls in id2cls.items():
+        clsmask = np.nonzero((y[:, 0] == id))
+        # len(color) must match len(coords), to assign each point a color
+        # 'color' kwarg must be a color or sequence of color specs. For a 
+        # sequence of values to be color-mapped,  use  the  'c'  argument
+        ax1.scatter(x[clsmask, 0], x[clsmask, 1], x[clsmask, 2], color=[cmap1(norm(id))]*len(clsmask), alpha=0.2, label=cls)
+        ax1.title.set_text("DrLim-plasma")
+        ax1.legend(loc="upper right")
+        ax2.scatter(x[clsmask, 0], x[clsmask, 1], x[clsmask, 2], color=[cmap2(norm(id))]*len(clsmask), alpha=0.2, label=cls)
+        ax2.title.set_text("DrLim-viridi")
+        ax2.legend(loc="upper right")
+    
+    plt.legend(loc="upper right")
+    plt.savefig(f"{args.rslt_root}/{out_name}.png")
 
-testset = datasets.FashionMnist(
-    root=data_root,
-    split="test",
-    transforms=[transforms.Resize([32, 32], antialias=False)]
-)
-testloader = torch.utils.data.DataLoader(
-    dataset=testset,
-    batch_size=batch_size,
-    shuffle=True
-)
+if __name__ == "__main__":
+    args = config.args
 
-classifier = model.DrLim(args.in_channels, args.out_channels)
-classifier.load_state_dict(torch.load(stat_dict))
-classifier.eval()
-classifier.to(device)
+    if not os.path.exists(args.rslt_root):
+        os.makedirs(args.rslt_root, mode=0o775)
 
-x = None
-y = None
-for images, labels in tqdm(testloader, total=len(testloader), ncols=100, desc=f"{utils.gren('testset')}"):
-    images = images.to(device)
-    labels = labels.to(device)
-    with torch.no_grad():
-        output = classifier(images)
-        if x is None:
-            x = output
-            y = labels
-        else:
-            x = torch.cat([output, x], dim=0)
-            y = torch.cat([labels, y], dim=0)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-plot_data = torch.cat([x, y], dim=1)
+    testloader = datasets.make_torchloader(
+        data_type=args.data_type,
+        data_root=args.data_root,
+        split=args.data_splt,
+        transforms=[transforms.Resize([32, 32], antialias=False)],
+        batch_size=args.batch_size,
+        num_workers=args.num_workers,
+        shuffle=True,
+        misc_args=args
+    )
 
-x = x.detach().cpu().numpy()
-y = y.detach().cpu().numpy()
+    classifier = model.DrLim(args.in_channels, args.out_channels)
+    classifier.load_state_dict(torch.load(args.stat_dict))
+    classifier.eval()
+    classifier.to(device)
 
-with open(f"{data_root}/classname.txt", 'r') as f:
-    tagmap = {int(item[0]):item[1] for item in [line.strip().split(' ') for line in f.readlines()]}
+    x = None
+    y = None
+    for images, labels in tqdm(testloader, total=len(testloader), ncols=100, desc=f"{utils.gren('testset')}"):
+        images = images.to(device)
+        labels = labels.to(device)
+        with torch.no_grad():
+            output = classifier(images)
+            if x is None:
+                x = output
+                y = labels
+            else:
+                x = torch.cat([output, x], dim=0)
+                y = torch.cat([labels, y], dim=0)
 
-cmap = matplotlib.cm.get_cmap("plasma")
-norm = matplotlib.colors.Normalize(vmin=0, vmax=9)
-ax = plt.figure()
-plt.tight_layout()
-for id, cls in tagmap.items():
-    clsmask = np.nonzero((y[:, 0] == id))
-    # len(color) must match len(coords), to assign each point a color
-    # 'color' kwarg must be a color or sequence of color specs. For a 
-    # sequence of values to be color-mapped,  use  the  'c'  argument
-    plt.scatter(x[clsmask, 0], x[clsmask, 1], color=[cmap(norm(id))]*len(clsmask), label=cls)
-# plt.scatter(x[:, 0], x[:, 1], c=y)
-plt.legend(loc="upper right")
-plt.savefig(f"{rslt_root}/result.png")
+    x = x.detach().cpu().numpy()
+    y = y.detach().cpu().numpy()
+    with open(f"{args.data_root}/classname.txt", 'r') as f:
+        tagmap = {int(item[0]):item[1] for item in [line.strip().split(' ') for line in f.readlines()]}
+    
+    draw_points_3d(x, y, tagmap, "i1o3")
+
