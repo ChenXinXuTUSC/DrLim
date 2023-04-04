@@ -15,8 +15,13 @@ parser.add_argument("--stat_dict", type=str, help="existing state dict that can 
 parser.add_argument("--in_channels", type=int, default=1, help="input space dimension")
 parser.add_argument("--out_channels", type=int, default=2, help="output space dimension")
 # configuration loader & optimizer & scheduler
-parser.add_argument("--num_epochs", type=int, default=50)
+parser.add_argument("--trans_rsiz", type=int, default=32, help="length of resized squared image")
+parser.add_argument("--trans_gray", action="store_true", help="whether to transform rgb to gray scale")
 parser.add_argument("--batch_size", type=int, default=8)
 parser.add_argument("--num_workers", type=int, default=4)
 parser.add_argument("--lr", type=float, default=1e-2, help="learning rate")
+# configuration training
+parser.add_argument("--num_epochs", type=int, default=50)
+parser.add_argument("--save_freq", type=int, default=10, help="state dict saving frequency")
+parser.add_argument("--info_freq", type=int, default=100, help="info printing frequency")
 args = parser.parse_args()

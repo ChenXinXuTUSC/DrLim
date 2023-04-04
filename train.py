@@ -1,5 +1,4 @@
 import os
-import argparse
 import time
 from tqdm import tqdm
 
@@ -19,11 +18,15 @@ data_root = args.data_root
 data_splt = args.data_splt
 batch_size = args.batch_size
 num_workers = args.num_workers
+
+trans = [transforms.Resize([args.trans_rsiz, args.trans_rsiz], antialias=False)]
+if args.trans_gray:
+    trans.append(transforms.Grayscale(num_output_channels=1))
 trainloader = datasets.make_torchloader(
     data_type=data_type,
     data_root=data_root,
     split=data_splt,
-    transforms=[transforms.Resize([32, 32], antialias=False)],
+    transforms=trans,
     batch_size=batch_size,
     num_workers=num_workers,
     shuffle=True,
@@ -31,7 +34,7 @@ trainloader = datasets.make_torchloader(
 )
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-classifer = model.DrLim(args.in_channels, args.out_channels)
+classifer = model.Contrastive(args.in_channels, args.out_channels)
 optimizer = torch.optim.Adam(classifer.parameters(), lr=args.lr)
 scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
 if args.stat_dict is not None:
@@ -47,8 +50,11 @@ if not os.path.exists(stat_root):
 
 
 num_epochs = args.num_epochs
+save_freq  = args.save_freq
+info_freq  = args.info_freq
 classifer.to(device)
 classifer.train()
+utils.log_info(f"training on {device}")
 for epoch in range(1, num_epochs + 1):
     for iter, (images, labels) in tqdm(enumerate(trainloader), total=len(trainloader), ncols=100, desc=f"{utils.redd('train')} {epoch:3d}/{num_epochs}"):
         images = images.to(device)
@@ -57,15 +63,16 @@ for epoch in range(1, num_epochs + 1):
 
         optimizer.zero_grad()
 
-        loss = classifer.ctloss(output, labels)
+        loss = classifer.loss(output, labels)
         loss.backward()
 
         optimizer.step()
 
         # metric logs
-        if iter % 100 == 0:
+        if iter % info_freq == 0:
             tqdm.write(f"{utils.redd('loss')}: {loss.item():.3f}")
             tfxw.add_scalar(tag="train/loss", scalar_value=loss.item(), global_step=epoch * len(trainloader) + iter)
-    if epoch % 10 == 0:
+    if epoch % save_freq == 0:
         torch.save(classifer.state_dict(), f"{stat_root}/{epoch}.pth")
+    
     scheduler.step()
