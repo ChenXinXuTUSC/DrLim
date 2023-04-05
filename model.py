@@ -44,7 +44,7 @@ class Contrastive(nn.Module):
         # nates on manifold in x-dimesion.
         return out
     
-    def loss(self, manifold_coords: torch.Tensor, labels: torch.Tensor):
+    def loss(self, manifold_coords: torch.Tensor, labels: torch.Tensor, centeralized: bool=False):
         '''compute contrastive loss
         perform correlation computation between samples
         |(x1,x1) (x1,x2) (x1,x3) ... (x1,xn)|
@@ -73,23 +73,24 @@ class Contrastive(nn.Module):
         
         # loss is contributed by distance of every sample
         # don't forget to redistribute it.
-        loss_totl  = (loss_same + loss_diff) / (num_samples * (num_samples - 1))
-        # # centralized
-        # loss_totl += ((manifold_coords + 1e-8).mean(dim=0) ** 2).sum().sqrt() * 1e-3 # centroid to origin
-        # loss_totl += ((manifold_coords + 1e-8) ** 2).sum(dim=1).sqrt().mean() * 1e-3 # gather all samples
-        return loss_totl
+        ctaloss  = (loss_same + loss_diff) / (num_samples * (num_samples - 1))
+        if centeralized:
+            distloss = (manifold_coords ** 2).sum(dim=1).sqrt().mean()   # distant converge
+            centloss = ((manifold_coords.mean(dim=1)) ** 2).sum().sqrt() # center to origin
+            ctaloss = ctaloss + distloss * 1e-2 + centloss * 1e-3
+        return ctaloss
 
 class Triplet(Contrastive):
     def __init__(
         self, 
         in_channels=1, 
         out_channels=2,
-        margin=1.0
+        margin=5.0
     ) -> None:
         super().__init__(in_channels, out_channels)
         self.margin = margin
     
-    def loss(self, manifold_coords: torch.Tensor, labels: torch.Tensor):
+    def loss(self, manifold_coords: torch.Tensor, labels: torch.Tensor, centeralized: bool=False):
         '''triplet loss proposed in FaceNet CVPR 2015
         
         params
@@ -116,13 +117,17 @@ class Triplet(Contrastive):
         # step3: filter out invalid triplet by setting their values
         #        to zero
         valid_mask = self.valid_triplet_mask(labels)
-        trploss *= valid_mask
-        trploss  = torch.nn.functional.relu(trploss)
+        trploss = trploss * valid_mask
+        trploss = torch.nn.functional.relu(trploss)
         
         # step4: compute scalar loss value  by  averaging  positive
         #        values
         num_positive_losses = (trploss > 0.0).float().sum()
         trploss = trploss.sum() / (num_positive_losses + eps)
+        if centeralized:
+            distloss = (manifold_coords ** 2).sum(dim=1).sqrt().mean()   # distant converge
+            centloss = ((manifold_coords.mean(dim=1)) ** 2).sum().sqrt() # center to origin
+            trploss = trploss + distloss * 1e-2 + centloss * 1e-3
         
         return trploss
 
@@ -158,12 +163,14 @@ class Triplet(Contrastive):
         mask = (distmat == 0.0).float()
         
         # use the zero-mask to set those zero values to epsilon
-        distmat += eps * mask
+        distmat = distmat + eps * mask
         
         distmat = torch.sqrt(distmat)
         
         # undo the trick for numerical instabilities
-        distmat *= (1.0 - mask)
+        # do not use *= operator, as it's an inplace operation
+        # which will break the backward chain on sqrt function
+        distmat = distmat * (1.0 - mask)
         
         return distmat
 
@@ -194,13 +201,20 @@ class Triplet(Contrastive):
         indices_unq = torch.logical_and(i_neq_j, torch.logical_and(i_neq_k, j_neq_k))
         
         # step2: mask of valid triplet(labels[i],labels[j],labels[k])
-        labels_eql = labels.unsqueeze(dim=0) == labels.unsqueeze(dim=1)
+        labels_eql = (labels.unsqueeze(dim=0) == labels.unsqueeze(dim=1)).squeeze()
         li_eql_lj = labels_eql.unsqueeze(dim=2)
         li_eql_lk = labels_eql.unsqueeze(dim=1)
         labels_vld = torch.logical_and(li_eql_lj, torch.logical_not(li_eql_lk))
         
         return torch.logical_and(indices_unq, labels_vld)
-    
+
+ALL_MODELS = [Contrastive, Triplet]
+def load_model(model_name: str):
+    mdict = {m.__name__:m for m in ALL_MODELS}
+    if model_name not in mdict:
+        raise Exception("model not implemented")
+    return mdict[model_name]
+
 if __name__ == "__main__":
     '''
     output information of model structure

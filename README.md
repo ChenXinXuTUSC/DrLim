@@ -11,8 +11,11 @@ The base model is from [Dimensionality Reduction by Learning an Invariant Mappin
 ## contrastive loss on Cifar10(RGB)
 |Cifar10 2d|Cifar10 3d|
 |:---:|:---:|
-|![Cifar10 2d](./images/2023-04-04_17%3A33%3A22_Cifar10_i1o2.png)|![Cifar10 3d]()|
+|![Cifar10 2d](./images/2023-04-04_17%3A33%3A22_Cifar10_i1o2.png)|![Cifar10 3d](./images/2023-04-05_10:23:03_Cifar10_i3o3.png)|
 haven't found the reason of that outliers which locates far from origin...
 
-## contrastive loss on Cifar10(Gray-scale)
-todo...
+## triplet loss on Fashion-Mnist
+|Fashion-Mnist 2d|Fashion-Mnist 3d|
+|:---:|:---:|
+|![Fashion-Mnist 2d](./images/2023-04-05_13:49:55_FashionMnist@Triplet_i1o2.png)|![Fashion-Mnist 3d](./images/2023-04-05_14:10:41_FashionMnist@Triplet_i1o3.png)|
+

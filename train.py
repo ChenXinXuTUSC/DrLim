@@ -34,7 +34,8 @@ trainloader = datasets.make_torchloader(
 )
 
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-classifer = model.Contrastive(args.in_channels, args.out_channels)
+# classifer = model.Contrastive(args.in_channels, args.out_channels)
+classifer = model.load_model(args.loss_type)(args.in_channels, args.out_channels)
 optimizer = torch.optim.Adam(classifer.parameters(), lr=args.lr)
 scheduler = torch.optim.lr_scheduler.ExponentialLR(optimizer, gamma=0.99)
 if args.stat_dict is not None:
@@ -42,9 +43,9 @@ if args.stat_dict is not None:
 
 
 timestamp = time.strftime('%Y-%m-%d_%H:%M:%S', time.localtime())
-tfxw_root = f"{args.tfxw_root}/{timestamp}_{data_type}_i{args.in_channels}o{args.out_channels}e{args.num_epochs}b{args.batch_size}lr{args.lr:.2f}"
+tfxw_root = f"{args.tfxw_root}/{timestamp}_{data_type}@{classifer.__class__.__name__}_i{args.in_channels}o{args.out_channels}e{args.num_epochs}b{args.batch_size}lr{args.lr:.2f}"
 tfxw = SummaryWriter(tfxw_root)
-stat_root = f"{args.stat_root}/{timestamp}_{data_type}_i{args.in_channels}o{args.out_channels}e{args.num_epochs}b{args.batch_size}lr{args.lr:.2f}"
+stat_root = f"{args.stat_root}/{timestamp}_{data_type}@{classifer.__class__.__name__}_i{args.in_channels}o{args.out_channels}e{args.num_epochs}b{args.batch_size}lr{args.lr:.2f}"
 if not os.path.exists(stat_root):
     os.makedirs(stat_root, mode=0o775)
 
@@ -63,7 +64,7 @@ for epoch in range(1, num_epochs + 1):
 
         optimizer.zero_grad()
 
-        loss = classifer.loss(output, labels)
+        loss = classifer.loss(output, labels, iter % 1000 == 0)
         loss.backward()
 
         optimizer.step()

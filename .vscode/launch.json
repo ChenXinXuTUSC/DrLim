@@ -25,13 +25,13 @@
                 "--out_channels", "2",
                 
                 "--trans_rsiz", "32",
-                "--trans_gray",
+                // "--trans_gray",
                 "--batch_size", "8",
                 "--num_workers", "4",
                 "--lr", "1e-2",
 
                 "--num_epochs", "50",
-                "--save_freq", "10",
+                "--save_freq", "5",
                 "--info_freq", "100",
             ]
         },
@@ -54,7 +54,7 @@
 
                 "--stat_dict", "${workspaceFolder}/runs/stat/2023-04-04_19:55:38_Cifar10_i1o2e10b8lr0.01/10.pth",
                 "--trans_rsiz", "32",
-                "--trans_gray", "true",
+                "--trans_gray",
                 "--num_workers", "4",
                 "--batch_size", "8",
 

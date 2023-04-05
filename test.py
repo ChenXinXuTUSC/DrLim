@@ -33,7 +33,8 @@ if __name__ == "__main__":
         misc_args=args
     )
 
-    classifier = model.Contrastive(args.in_channels, args.out_channels)
+    # classifier = model.Contrastive(args.in_channels, args.out_channels)
+    classifier = model.load_model(args.loss_type)(args.in_channels, args.out_channels)
     classifier.load_state_dict(torch.load(args.stat_dict))
     classifier.eval()
     classifier.to(device)
@@ -59,7 +60,7 @@ if __name__ == "__main__":
     
     timestamp = time.strftime('%Y-%m-%d_%H:%M:%S', time.localtime())
     if args.out_channels == 2:
-        utils.draw_points_2d(x, y, tagmap, args.rslt_root, f"{timestamp}_{args.data_type}_i{args.in_channels}o{args.out_channels}")
+        utils.draw_points_2d(x, y, tagmap, args.rslt_root, f"{timestamp}_{args.data_type}@{classifier.__class__.__name__}_i{args.in_channels}o{args.out_channels}")
     if args.out_channels == 3:
-        utils.draw_points_3d(x, y, tagmap, args.rslt_root, f"{timestamp}_{args.data_type}_i{args.in_channels}o{args.out_channels}")
-        utils.dump_points_3d(x, y, args.rslt_root, f"{args.data_type}_i{args.in_channels}o{args.out_channels}")
+        utils.draw_points_3d(x, y, tagmap, args.rslt_root, f"{timestamp}_{args.data_type}@{classifier.__class__.__name__}_i{args.in_channels}o{args.out_channels}")
+        utils.dump_points_3d(x, y, args.rslt_root, f"{args.data_type}@{classifier.__class__.__name__}_i{args.in_channels}o{args.out_channels}")

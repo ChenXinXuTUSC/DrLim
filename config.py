@@ -11,6 +11,7 @@ parser.add_argument("--tfxw_root", type=str, default=f"{utils.PROJECT_SOURCE_DIR
 parser.add_argument("--stat_root", type=str, default=f"{utils.PROJECT_SOURCE_DIR}/runs/stat", help="dir to store model state dict")
 parser.add_argument("--rslt_root", type=str, default=f"{utils.PROJECT_SOURCE_DIR}/results", help="dir to store visualization resutls")
 # configuration model
+parser.add_argument("--loss_type", type=str, help="available loss type to choose: [Contrastive|Triplet]")
 parser.add_argument("--stat_dict", type=str, help="existing state dict that can be resumed")
 parser.add_argument("--in_channels", type=int, default=1, help="input space dimension")
 parser.add_argument("--out_channels", type=int, default=2, help="output space dimension")
