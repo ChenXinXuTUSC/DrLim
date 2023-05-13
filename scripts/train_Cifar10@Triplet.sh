@@ -7,18 +7,19 @@ CUDA_LAUNCH_BLOCKING=1
 # activate the virtual env before executing this script
 python ${SCRIPT_PATH}/../train.py \
     --data_type Cifar10 \
-    --data_root /home/hm/fuguiduo/datasets/cifar10 \
+    --data_root /home/hm/fuguiduo/datasets/cifar10/npz \
     --data_splt train \
-    --tfxw_root ${WORKSPACE_FOLDER}/runs/tfxw \
-    --stat_root ${WORKSPACE_FOLDER}/runs/stat \
+    --logd_root ${WORKSPACE_FOLDER}/runs \
+    \
     --loss_type Triplet \
-    --in_channels 1 \
-    --out_channels 3 \
+    --in_channels 3 \
+    --out_channels 2 \
+    \
     --trans_rsiz 32 \
-    --trans_gray\
     --batch_size 8 \
     --num_workers 4 \
     --lr 1e-2 \
-    --num_epochs 50 \
+    \
+    --num_epochs 25 \
     --save_freq 5 \
-    --info_freq 100
+    --info_freq 50

@@ -4,6 +4,7 @@
     // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
     "version": "0.2.0",
     "configurations": [
+        // train
         {
             "name": "train",
             "type": "python",
@@ -19,8 +20,9 @@
                 "--data_type", "FashionMnist",
                 "--data_root", "/home/hm/fuguiduo/datasets/fashion-mnist",
                 "--tfxw_root", "${workspaceFolder}/runs/tfxw",
-                
                 "--stat_root", "${workspaceFolder}/runs/stat",
+
+                "--loss_type", "Contrastive",
                 "--in_channels", "1",
                 "--out_channels", "2",
                 
@@ -29,12 +31,12 @@
                 "--batch_size", "8",
                 "--num_workers", "4",
                 "--lr", "1e-2",
-
                 "--num_epochs", "50",
-                "--save_freq", "5",
-                "--info_freq", "100",
+                "--save_freq", "25",
+                "--info_freq", "50",
             ]
         },
+        // test
         {
             "name": "test",
             "type": "python",

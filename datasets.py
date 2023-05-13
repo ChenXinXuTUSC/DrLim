@@ -12,10 +12,9 @@ class FashionMnist(torch.utils.data.Dataset):
         ) -> None:
         super().__init__()
         self.root = root
-        self.split = split
         self.transforms = transforms
 
-        npzdata = np.load(f"{self.root}/{self.split}.npz")
+        npzdata = np.load(f"{self.root}/{split}.npz")
         self.images = torch.from_numpy(npzdata["images"]).unsqueeze(dim=1).float() # [n,h,w]=>[n,c,h,w]
         self.labels = torch.from_numpy(np.reshape(npzdata["labels"], (len(npzdata["labels"]), 1))).int()
     
@@ -42,9 +41,9 @@ class Cifar10(torch.utils.data.Dataset):
         self.root = root
         self.transforms = transforms
 
-        data = np.load(f"{root}/npz/{split}_batch.npz")
-        self.images = torch.from_numpy(data["images"]).float()
-        self.labels = torch.from_numpy(np.reshape(data["labels"], (len(data["labels"]), 1))).int()
+        npzdata = np.load(f"{root}/{split}.npz")
+        self.images = torch.from_numpy(npzdata["images"]).float()
+        self.labels = torch.from_numpy(np.reshape(npzdata["labels"], (len(npzdata["labels"]), 1))).int()
 
     def __len__(self):
         return len(self.labels)

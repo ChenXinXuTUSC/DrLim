@@ -43,9 +43,13 @@ if args.stat_dict is not None:
 
 
 timestamp = time.strftime('%Y-%m-%d_%H:%M:%S', time.localtime())
-tfxw_root = f"{args.tfxw_root}/{timestamp}_{data_type}@{classifer.__class__.__name__}_i{args.in_channels}o{args.out_channels}e{args.num_epochs}b{args.batch_size}lr{args.lr:.2f}"
+logd_root = os.path.join(
+    args.logd_root, 
+    f"{data_type}@{classifer.__class__.__name__}_i{args.in_channels}o{args.out_channels}e{args.num_epochs}b{args.batch_size}lr{args.lr:.2f}_{timestamp}"
+)
+tfxw_root = os.path.join(logd_root, "tfxw")
 tfxw = SummaryWriter(tfxw_root)
-stat_root = f"{args.stat_root}/{timestamp}_{data_type}@{classifer.__class__.__name__}_i{args.in_channels}o{args.out_channels}e{args.num_epochs}b{args.batch_size}lr{args.lr:.2f}"
+stat_root = os.path.join(logd_root, "stat")
 if not os.path.exists(stat_root):
     os.makedirs(stat_root, mode=0o775)
 

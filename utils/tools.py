@@ -4,6 +4,7 @@ import torch
 def draw_points_2d(
     x: np.ndarray,
     y: np.ndarray,
+    title: str,
     id2cls: dict,
     out_root: str,
     out_name: str
@@ -12,29 +13,32 @@ def draw_points_2d(
     import matplotlib
 
     cmap1 = matplotlib.colormaps["plasma"]
-    cmap2 = matplotlib.colormaps["viridis"]
+    # cmap2 = matplotlib.colormaps["viridis"]
     norm = matplotlib.colors.Normalize(vmin=0, vmax=9)
-    fig = plt.figure(figsize=plt.figaspect(0.4))
-    ax1 = fig.add_subplot(1, 2, 1)
-    ax2 = fig.add_subplot(1, 2, 2)
+    # fig = plt.figure(figsize=plt.figaspect(0.4))
+    fig = plt.figure()
+    ax1 = fig.add_subplot(1, 1, 1)
+    # ax2 = fig.add_subplot(1, 2, 2)
     for id, cls in id2cls.items():
         clsmask = np.nonzero((y[:, 0] == id))
         # len(color) must match len(coords), to assign each point a color
         # 'color' kwarg must be a color or sequence of color specs. For a 
         # sequence of values to be color-mapped,  use  the  'c'  argument
         ax1.scatter(x[clsmask, 0], x[clsmask, 1], color=[cmap1(norm(id))]*len(clsmask), alpha=0.5, label=cls)
-        ax1.title.set_text("DrLim-plasma")
-        ax1.legend(loc="upper right")
-        ax2.scatter(x[clsmask, 0], x[clsmask, 1], color=[cmap2(norm(id))]*len(clsmask), alpha=0.5, label=cls)
-        ax2.title.set_text("DrLim-viridi")
-        ax2.legend(loc="upper right")
+        ax1.title.set_text(title)
+        # ax1.legend(loc="upper right")
+        # ax2.scatter(x[clsmask, 0], x[clsmask, 1], color=[cmap2(norm(id))]*len(clsmask), alpha=0.5, label=cls)
+        # ax2.title.set_text("DrLim-viridi")
+        # ax2.legend(loc="upper right")
     
-    plt.legend(loc="upper right")
+    fig.subplots_adjust(right=0.8)
+    plt.legend(loc='upper right', bbox_to_anchor=(1.28, 1.00))
     plt.savefig(f"{out_root}/{out_name}.png")
 
 def draw_points_3d(
     x: np.ndarray,
     y: np.ndarray,
+    title: str,
     id2cls: dict,
     out_root: str,
     out_name: str
@@ -43,24 +47,27 @@ def draw_points_3d(
     import matplotlib
 
     cmap1 = matplotlib.colormaps["plasma"]
-    cmap2 = matplotlib.colormaps["viridis"]
+    # cmap2 = matplotlib.colormaps["viridis"]
     norm = matplotlib.colors.Normalize(vmin=0, vmax=9)
-    fig = plt.figure(figsize=plt.figaspect(0.4))
-    ax1 = fig.add_subplot(1, 2, 1, projection="3d")
-    ax2 = fig.add_subplot(1, 2, 2, projection="3d")
+    # fig = plt.figure(figsize=plt.figaspect(0.4))
+    fig = plt.figure()
+    ax1 = fig.add_subplot(1, 1, 1, projection="3d")
+    ax1.title.set_text(title)
+    # ax2 = fig.add_subplot(1, 2, 2, projection="3d")
     for id, cls in id2cls.items():
         clsmask = np.nonzero((y[:, 0] == id))
         # len(color) must match len(coords), to assign each point a color
         # 'color' kwarg must be a color or sequence of color specs. For a 
         # sequence of values to be color-mapped,  use  the  'c'  argument
+        
         ax1.scatter(x[clsmask, 0], x[clsmask, 1], x[clsmask, 2], color=[cmap1(norm(id))]*len(clsmask), alpha=0.5, label=cls)
-        ax1.title.set_text("DrLim-plasma")
-        ax1.legend(loc="upper right")
-        ax2.scatter(x[clsmask, 0], x[clsmask, 1], x[clsmask, 2], color=[cmap2(norm(id))]*len(clsmask), alpha=0.5, label=cls)
-        ax2.title.set_text("DrLim-viridi")
-        ax2.legend(loc="upper right")
-    
-    plt.legend(loc="upper right")
+        # ax1.legend(bbox_to_anchor=(-0.2, 0), loc="center left")
+        # ax2.scatter(x[clsmask, 0], x[clsmask, 1], x[clsmask, 2], color=[cmap2(norm(id))]*len(clsmask), alpha=0.5, label=cls)
+        # ax2.title.set_text("DrLim-viridi")
+        # ax2.legend(loc="upper right")
+    fig.subplots_adjust(left=0.05 ,right=0.8)
+    plt.grid(True)
+    plt.legend(loc='upper right', bbox_to_anchor=(1.375, 1.00))
     plt.savefig(f"{out_root}/{out_name}.png")
 
 def dump_points_3d(
